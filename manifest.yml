@@ -1,0 +1,34 @@
+modules:
+  function:
+    - key: handler
+      handler: index.handler
+
+  jira:projectPage:
+    - key: custom-project-page
+      title: Custom Project Page
+      icon: https://developer.atlassian.com/platform/forge/images/icons/project-page-icon.svg
+      resource: main
+      resolver:
+        function: handler
+
+  jira:issueContext:
+    - key: custom-issue-context
+      title: Show Extra Info
+      label: Extra Info
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-action-icon.svg
+      resource: issue-context
+
+resources:
+  - key: main
+    path: static/hello-world/build
+  - key: issue-context
+    path: static/issue-context/build
+
+app:
+  id: ari:cloud:ecosystem::app/20a9eefa-62b0-4d35-a5fa-3a20f8f01ed7
+  runtime:
+    name: nodejs22.x
+
+permissions:
+  scopes:
+    - read:jira-work
