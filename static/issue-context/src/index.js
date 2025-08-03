@@ -4,7 +4,7 @@ import App from './App';
 
 console.log("Issue Context index.js mounted");
 
-// Use createRoot instead of render
+// Use createRoot instead of ReactDom.render
 const rootElement = document.getElementById('root');
 const root = createRoot(rootElement);
 root.render(

@@ -17,6 +17,8 @@ modules:
       label: Extra Info
       icon: https://developer.atlassian.com/platform/forge/images/icons/issue-action-icon.svg
       resource: issue-context
+      resolver:
+        function: handler
 
 resources:
   - key: main

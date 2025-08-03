@@ -3,30 +3,24 @@ import api, { route } from "@forge/api";
 export const handler = async (req) => {
   try {
     const moduleType = req.context?.extension?.type;
-    console.log(`Handler triggered by: ${moduleType}`);
 
-    // Only run if this is from the project page
+    // ----------------------------
+    // Project Page handler
+    // ----------------------------
     if (moduleType === "jira:projectPage") {
       const projectIdOrKey =
         req.context.extension.project.key || req.context.extension.project.id;
-
-      console.log(`Using projectIdOrKey: ${projectIdOrKey}`);
 
       const res = await api.asApp().requestJira(
         route`/rest/api/3/project/${projectIdOrKey}`
       );
 
-      console.log(`Response status: ${res.status}`);
-
       if (!res.ok) {
         const text = await res.text();
-        console.error(`Jira API error (project): ${res.status} ${text}`);
-        return { error: `Jira API error: ${res.status}` };
+        throw new Error(`Jira API error (project): ${res.status} ${text}`);
       }
 
       const data = await res.json();
-
-      console.log(`Project API response: ${JSON.stringify(data, null, 2)}`);
 
       return {
         key: data.key,
@@ -35,10 +29,46 @@ export const handler = async (req) => {
       };
     }
 
-    // If somehow triggered by another module (shouldn't happen here)
-    return { message: "Not a project page call" };
+    // ----------------------------
+    // Issue Context handler
+    // ----------------------------
+    if (moduleType === "jira:issueContext") {
+      // Verify if issue data exists in context
+      const issueIdOrKey =
+        req.context.extension.issue?.key || req.context.extension.issue?.id;
+
+      if (!issueIdOrKey) {
+        console.error("No issue key or ID in context for issueContext.");
+        return { error: "No issue key available in context." };
+      }
+
+      const res = await api.asApp().requestJira(
+        route`/rest/api/3/issue/${issueIdOrKey}`
+      );
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Jira API error (issue): ${res.status} ${text}`);
+      }
+
+      const data = await res.json();
+
+      return {
+        key: data.key,
+        summary: data.fields.summary,
+        status: data.fields.status?.name || "Unknown",
+        reporter: data.fields.reporter?.displayName || "Unknown reporter",
+      };
+    }
+
+    // ----------------------------
+    // Fallback for unknown module types
+    // ----------------------------
+    console.warn(`Unknown module type: ${moduleType}`);
+    return { error: `Unknown module type: ${moduleType}` };
+
   } catch (err) {
     console.error("Handler error:", err);
-    return { error: "Failed to load project info." };
+    return { error: "Failed to load data." };
   }
 };
